@@ -1,15 +1,14 @@
-import { useReducer } from 'react';
-import './App.css';
-import DigitButton from './DigitButton';
-import OperationButton from './OperationButton';
+import { useReducer } from "react";
+import "./App.css";
+import DigitButton from "./DigitButton";
+import OperationButton from "./OperationButton";
 
 export const ACTIONS = {
-  ADD_DIGIT: 'add-digit',
-  CHOOSE_OPERATION: 'choose-operation',
-  CLEAR: 'clear',
-  EVALUATE: 'evaluate'
-
-}
+  ADD_DIGIT: "add-digit",
+  CHOOSE_OPERATION: "choose-operation",
+  CLEAR: "clear",
+  EVALUATE: "evaluate",
+};
 
 function reducer(state, { type, payload }) {
   switch (type) {
@@ -18,21 +17,22 @@ function reducer(state, { type, payload }) {
         return {
           ...state,
           override: false,
-          currentOperand: payload.digit
-        }
+          currentOperand: payload.digit,
+        };
       }
       if (payload.digit === "0" && state.currentOperand === "0") return state;
-      if (payload.digit === "." && state.currentOperand.includes(".")) return state;
+      if (payload.digit === "." && state.currentOperand.includes("."))
+        return state;
       if (state.currentOperand === "0" && payload.digit !== ".") {
         return {
           ...state,
-          currentOperand: payload.digit
-        }
+          currentOperand: payload.digit,
+        };
       }
       return {
         ...state,
         currentOperand: `${state.currentOperand || ""}${payload.digit}`,
-      }
+      };
     case ACTIONS.CLEAR:
       return { currentOperand: "0" };
     case ACTIONS.CHOOSE_OPERATION:
@@ -41,36 +41,47 @@ function reducer(state, { type, payload }) {
       }
 
       if (state.currentOperand == null) {
-        if (payload.operation == "-") {
+        if (payload.operation === "-") {
           return {
             ...state,
-            currentOperand: "-"
+            currentOperand: "-",
           };
         } else {
           return {
             ...state,
-            operation: payload.operation
-          }
+            operation: payload.operation,
+          };
         }
       }
+      if (state.currentOperand === "-" && payload.operation !== "-") {
+        return {
+          ...state,
+          currentOperand: null,
+          operation: payload.operation,
+        };
+      }
+
       if (state.previousOperand == null) {
         return {
           ...state,
           operation: payload.operation,
           previousOperand: state.currentOperand,
           currentOperand: null,
-        }
+        };
       }
 
       return {
         ...state,
         previousOperand: evaluate(state),
         operation: payload.operation,
-        currentOperand: null
-
-      }
+        currentOperand: null,
+      };
     case ACTIONS.EVALUATE:
-      if (state.operation == null || state.currentOperand == null || state.previousOperand == null) {
+      if (
+        state.operation == null ||
+        state.currentOperand == null ||
+        state.previousOperand == null
+      ) {
         return state;
       }
 
@@ -79,18 +90,18 @@ function reducer(state, { type, payload }) {
         previousOperand: null,
         overrride: true,
         operation: null,
-        currentOperand: evaluate(state)
-      }
+        currentOperand: evaluate(state),
+      };
     default:
       return state;
   }
 }
 
 function evaluate({ currentOperand, previousOperand, operation }) {
-  const prev = parseFloat(previousOperand)
-  const current = parseFloat(currentOperand)
-  if (isNaN(prev) || isNaN(current)) return ""
-  let computation = ""
+  const prev = parseFloat(previousOperand);
+  const current = parseFloat(currentOperand);
+  if (isNaN(prev) || isNaN(current)) return "";
+  let computation = "";
   switch (operation) {
     case "+":
       computation = prev + current;
@@ -104,22 +115,32 @@ function evaluate({ currentOperand, previousOperand, operation }) {
     case "/":
       computation = prev / current;
       break;
+    default:
+      computation = 0;
   }
   return computation.toString();
 }
 
 function Calculator() {
-
-  const [{ currentOperand, previousOperand, operation }, dispatch] = useReducer(reducer, { currentOperand: "0" });
+  const [{ currentOperand, previousOperand, operation }, dispatch] = useReducer(
+    reducer,
+    { currentOperand: "0" }
+  );
 
   return (
     <div className="calculator">
-      <div id='previousOperand'>{previousOperand} {operation}</div>
+      <div id="previousOperand">
+        {previousOperand} {operation}
+      </div>
       <div id="display">{currentOperand}</div>
       <div className="buttons">
         <div
-          onClick={() => dispatch({ type: ACTIONS.CLEAR, })}
-          id="clear" className="button">AC</div>
+          onClick={() => dispatch({ type: ACTIONS.CLEAR })}
+          id="clear"
+          className="button"
+        >
+          AC
+        </div>
         <OperationButton dispatch={dispatch} operation={"/"} />
         <OperationButton dispatch={dispatch} operation={"X"} />
         <DigitButton dispatch={dispatch} digit={"7"} />
@@ -134,12 +155,15 @@ function Calculator() {
         <DigitButton dispatch={dispatch} digit={"2"} />
         <DigitButton dispatch={dispatch} digit={"3"} />
         <div
-          onClick={() => dispatch({ type: ACTIONS.EVALUATE, })}
-          id="equals" className="button">=</div>
+          onClick={() => dispatch({ type: ACTIONS.EVALUATE })}
+          id="equals"
+          className="button"
+        >
+          =
+        </div>
         <DigitButton dispatch={dispatch} digit={"0"} />
-        <DigitButton dispatch={dispatch} digit={"."} /></div>
-
-
+        <DigitButton dispatch={dispatch} digit={"."} />
+      </div>
     </div>
   );
 }
